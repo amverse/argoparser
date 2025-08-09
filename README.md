@@ -79,8 +79,8 @@ Some valid examples:
 In the case long name is not explicitly specified with `arg` tag it exists anyway and calculated according to the following rules:
 
 - Field name is separated by capital letters.
-- Consequent items conaining only one letter are joined; 
-- The first letter of every result's item are replaced to lowercase version of it;
+- Consequent items containing only one letter are joined; 
+- The first letter of every result's item are replaced with lowercase version of it;
 - Result is joined by hyphen.
 
 For example for `FieldName` field long argument name is implicitly specified as `--field-name`. For UserID due to the second step the result is `--user-id`. Anyway, we recommend explicitly specified names.
@@ -89,7 +89,7 @@ For example for `FieldName` field long argument name is implicitly specified as 
 
 There is `required` tag for marking the field as required. Parser validates the field is passed and returns an error otherwise.
 
-Let's modify the example above and make UserID field requried:
+Let's modify the example above and make UserID field required:
 
 ```
 UserID string `arg:"--user-id,required"`
@@ -117,7 +117,7 @@ Technically:
 - Positional arguments are stored to the `positional`-tagged fields in the same order as they are listed in the struct;
 - Positional arguments are always required;
 - "Default" field for storing unspecified positional arguments is always `[]string` with `positional` tag;
-- The field can't be positional and hypen-named at the same time.
+- The field can't be positional and hyphen-named at the same time.
 
 ### Parsing examples
 
@@ -130,10 +130,10 @@ Feel free to open issues and pull requests.
 Short list of rules:
 
 - for bugs add example for reproduction;
-- for new features add description, containing this info:
+- for new features add description, containing such info as:
     - what problem it solves,
     - why the problem is being solved this way,
     - why it may be useful for other users;
 - both for bugs and new features add tests (or, please, explicitly describe why it's not required);
-- in case of adding new features it's a good practice to open issue with RFC first, then implement it and open pull request (it may save your time);
+- in the case of adding new features it's a good practice to open issue with RFC first, then implement it and open pull request (it may save your time);
 - don't forget to keep documentation (this README) up to date.

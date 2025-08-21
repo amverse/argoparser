@@ -47,6 +47,10 @@ func getFieldMeta(field reflect.StructField) (fieldMeta, error) {
 		}
 	}
 
+	if meta.isPositional && (meta.shortName != "" || meta.longName != "") {
+		return fieldMeta{}, fmt.Errorf("positional field cannot have short or long name")
+	}
+
 	return meta, nil
 }
 

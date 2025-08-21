@@ -99,6 +99,14 @@ func TestParser(t *testing.T) {
 			ShouldReturnError: true,
 		},
 		{
+			Name:  "Test building index for wrong structure: positional field with short or long name",
+			Input: "-f asdf",
+			Result: struct {
+				Foo string `arg:"-f,positional"`
+			}{},
+			ShouldReturnError: true,
+		},
+		{
 			Name:  "Basic test with positional arguments",
 			Input: "value-a 2 value-c",
 			Result: struct {

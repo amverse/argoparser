@@ -5,7 +5,8 @@ Argo is another command line arguments parser for Go.
 ## Why not standard `flags`?
 
 - **Argo** supports parsing arguments from any strings and string slices, while flags can parse only program arguments. This is very useful for bots or interactive console apps;
-- **Argo** provides user-friendly syntax for describing typed argument objects. This is easy to write and understand at first glance.
+- **Argo** provides user-friendly syntax for describing typed argument objects. This is easy to write and understand at first glance;
+- **Argo** also depends only on standard library;
 
 ## Command line syntax
 
@@ -115,9 +116,10 @@ Technically:
 
 - `positional`-tagged fields may be of any supported "scalar" type (string, int);
 - Positional arguments are stored to the `positional`-tagged fields in the same order as they are listed in the struct;
-- Positional arguments are always required;
+- Positional arguments may be also required or not depending of corresponging tag;
 - "Default" field for storing unspecified positional arguments is always `[]string` with `positional` tag;
-- The field can't be positional and hyphen-named at the same time.
+- The field can't be positional and hyphen-named at the same time;
+- Marking positional argument as required in fact makes every previous positional argument required too.
 
 ### Parsing examples
 

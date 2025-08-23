@@ -54,10 +54,6 @@ func lex(input string) []token {
 	}
 	openedQuote := rune(0)
 
-	appendCurrentValue := func(pos int) {
-		currentToken.Value.WriteRune(runeSlice[pos])
-	}
-
 	flushToken := func() {
 		result = append(result, token{
 			TokenType: currentToken.TokenType,
@@ -70,16 +66,15 @@ func lex(input string) []token {
 
 	type moveToParams struct {
 		NewState     lexerState
-		Pos          int
 		NewTokenType tokenType
-		ShouldAppend bool
+		AppendWith   rune
 		ShouldFlush  bool
 	}
 
 	moveTo := func(params moveToParams) {
 		state = params.NewState
-		if params.ShouldAppend {
-			appendCurrentValue(params.Pos)
+		if params.AppendWith != 0 {
+			currentToken.Value.WriteRune(params.AppendWith)
 		}
 		if params.NewTokenType != 0 {
 			currentToken.TokenType = params.NewTokenType
@@ -94,34 +89,30 @@ func lex(input string) []token {
 		case stateInitial:
 			if runeSlice[pos] == '-' {
 				moveTo(moveToParams{
-					NewState:     stateMetHyphen,
-					Pos:          pos,
-					ShouldAppend: true,
+					NewState:   stateMetHyphen,
+					AppendWith: runeSlice[pos],
 				})
 			} else if unicode.IsSpace(runeSlice[pos]) {
 				continue
 			} else if isQuote(runeSlice[pos]) {
 				moveTo(moveToParams{
 					NewState:     stateReadingQuotedString,
-					Pos:          pos,
 					NewTokenType: typeStringValue,
 				})
 				openedQuote = runeSlice[pos]
 			} else {
 				moveTo(moveToParams{
 					NewState:     stateReadingSimpleStrign,
-					Pos:          pos,
 					NewTokenType: typeStringValue,
-					ShouldAppend: true,
+					AppendWith:   runeSlice[pos],
 				})
 			}
 		case stateMetHyphen:
 			if runeSlice[pos] == '-' {
 				moveTo(moveToParams{
 					NewState:     stateReadingLongKey,
-					Pos:          pos,
 					NewTokenType: typeLongKey,
-					ShouldAppend: true,
+					AppendWith:   runeSlice[pos],
 				})
 			} else if unicode.IsSpace(runeSlice[pos]) {
 				moveTo(moveToParams{
@@ -131,9 +122,8 @@ func lex(input string) []token {
 			} else {
 				moveTo(moveToParams{
 					NewState:     stateReadingShortGroup,
-					Pos:          pos,
 					NewTokenType: typeShortGroup,
-					ShouldAppend: true,
+					AppendWith:   runeSlice[pos],
 				})
 			}
 		case stateReadingShortGroup:
@@ -144,9 +134,8 @@ func lex(input string) []token {
 				})
 			} else {
 				moveTo(moveToParams{
-					NewState:     stateReadingShortGroup,
-					Pos:          pos,
-					ShouldAppend: true,
+					NewState:   stateReadingShortGroup,
+					AppendWith: runeSlice[pos],
 				})
 			}
 		case stateReadingLongKey:
@@ -157,9 +146,8 @@ func lex(input string) []token {
 				})
 			} else {
 				moveTo(moveToParams{
-					NewState:     stateReadingLongKey,
-					Pos:          pos,
-					ShouldAppend: true,
+					NewState:   stateReadingLongKey,
+					AppendWith: runeSlice[pos],
 				})
 			}
 		case stateReadingSimpleStrign:
@@ -170,36 +158,48 @@ func lex(input string) []token {
 				})
 			} else {
 				moveTo(moveToParams{
-					NewState:     stateReadingSimpleStrign,
-					Pos:          pos,
-					ShouldAppend: true,
+					NewState:   stateReadingSimpleStrign,
+					AppendWith: runeSlice[pos],
 				})
 			}
 		case stateReadingQuotedString:
 			if runeSlice[pos] == openedQuote {
 				moveTo(moveToParams{
 					NewState:    stateInitial,
-					Pos:         pos,
 					ShouldFlush: true,
 				})
 			} else if runeSlice[pos] == '\\' {
 				moveTo(moveToParams{
 					NewState: stateEscaped,
-					Pos:      pos,
 				})
 			} else {
 				moveTo(moveToParams{
-					NewState:     stateReadingQuotedString,
-					Pos:          pos,
-					ShouldAppend: true,
+					NewState:   stateReadingQuotedString,
+					AppendWith: runeSlice[pos],
 				})
 			}
 		case stateEscaped:
-			moveTo(moveToParams{
-				NewState:     stateReadingQuotedString,
-				Pos:          pos,
-				ShouldAppend: true,
-			})
+			if runeSlice[pos] == 'r' {
+				moveTo(moveToParams{
+					NewState:   stateReadingQuotedString,
+					AppendWith: rune('\r'),
+				})
+			} else if runeSlice[pos] == 'n' {
+				moveTo(moveToParams{
+					NewState:   stateReadingQuotedString,
+					AppendWith: rune('\n'),
+				})
+			} else if runeSlice[pos] == 't' {
+				moveTo(moveToParams{
+					NewState:   stateReadingQuotedString,
+					AppendWith: rune('\t'),
+				})
+			} else {
+				moveTo(moveToParams{
+					NewState:   stateReadingQuotedString,
+					AppendWith: runeSlice[pos],
+				})
+			}
 		}
 	}
 

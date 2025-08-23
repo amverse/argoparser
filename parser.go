@@ -2,6 +2,8 @@ package argoparser
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -54,13 +56,11 @@ func checkRequiredFields(index fieldsIndex) error {
 	return nil
 }
 
-func ParseString(input string, result any) error {
+func parseImpl(tokens []token, result any) error {
 	index, err := buildIndex(result)
 	if err != nil {
 		return err
 	}
-
-	tokens := lex(input)
 
 	tokenPos := 0
 
@@ -164,6 +164,35 @@ func ParseString(input string, result any) error {
 	return nil
 }
 
+func ParseString(input string, result any) error {
+	tokens := lex(input)
+	return parseImpl(tokens, result)
+}
+
 func ParseSlice(input []string, result any) error {
 	return ParseString(strings.Join(input, " "), result)
+}
+
+func ParseAppArgs(result any) error {
+	tokens := []token{}
+	for _, arg := range os.Args[1:] {
+		if strings.HasPrefix(arg, "--") {
+			tokens = append(tokens, token{TokenType: typeLongKey, Value: arg})
+		} else if strings.HasPrefix(arg, "-") {
+			tokens = append(tokens, token{TokenType: typeShortGroup, Value: arg})
+		} else {
+			tokens = append(tokens, token{TokenType: typeStringValue, Value: arg})
+		}
+	}
+
+	return parseImpl(tokens, result)
+}
+
+func ParseReader(reader *io.Reader, result any) error {
+	data, err := io.ReadAll(*reader)
+	if err != nil {
+		return err
+	}
+
+	return ParseString(string(data), result)
 }

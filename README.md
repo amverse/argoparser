@@ -2,6 +2,69 @@
 
 Argo is another command line arguments parser for Go.
 
+## Quick examples
+
+Let's imagine we're making a tool for fetching user subscriptions.
+
+Here's a code snippet, illustrating how arguments may be parsed:
+
+```
+type SubCtlArgs struct {
+    UserID   int      `arg:"--user-id,-u,required"` // id of user to get subscriptions for
+    Limit    int      `arg:"-l"`                    // limit the number of subscriptions to return
+    Env      string   `arg:"--env"`
+    JSON     bool     `arg:"--json,-j"`             // should result be in machine-readable format
+    Products []string `arg:"positional"`            // list of products to get subscriptions for
+}
+
+args := SubCtlArgs{
+    Env: "testing", // default value for environment
+}
+err := argo.ParseAppArgs(&args)
+if err != nil {
+    fmt.Println(err)
+    return
+}
+
+logArgs(args)
+```
+
+Let's run it.
+
+```
+> ./subscraper
+required field is not presented: --user-id
+
+> ./subscraper -u 123
+{
+  "UserID": 123,
+  "Limit": 0,
+  "Env": "testing",
+  "JSON": false,
+  "Products": []
+}
+
+> ./subscraper -u 123 -l 10 --env production --json "my fancy product" simpleproduct
+{
+  "UserID": 123,
+  "Limit": 10,
+  "Env": "production",
+  "JSON": true,
+  "Products": [
+    "my fancy product",
+    "simpleproduct"
+  ]
+}
+```
+<!-- 
+But a tool made only for fetching subscriptions is way too weird. Let's make something more powerful - interactive cli tool for managing subscriptions including fetching them.
+
+That's how reading commands may look:
+
+```
+
+``` -->
+
 ## Why not standard `flags`?
 
 - **Argo** supports parsing arguments from any strings and string slices, while flags can parse only program arguments. This is very useful for bots or interactive console apps;

@@ -135,13 +135,13 @@ func TestParser(t *testing.T) {
 		},
 		{
 			Name:  "Test positionals default",
-			Input: "value-a 2 a 3 c",
+			Input: "'value a' 2 a 3 c",
 			Result: struct {
 				ValueA  string   `arg:"positional"`
 				ValueB  int      `arg:"positional"`
 				Default []string `arg:"positional"`
 			}{
-				ValueA:  "value-a",
+				ValueA:  "value a",
 				ValueB:  2,
 				Default: []string{"a", "3", "c"},
 			},
@@ -245,14 +245,18 @@ func TestParser(t *testing.T) {
 			Input: "",
 			Result: struct {
 				Default []string `arg:"positional"`
-			}{},
+			}{
+				Default: []string{},
+			},
 		},
 		{
 			Name:  "Test whitespace only input",
 			Input: "   \t\n  ",
 			Result: struct {
 				Default []string `arg:"positional"`
-			}{},
+			}{
+				Default: []string{},
+			},
 		},
 		{
 			Name:  "Test multiple positional default fields error",

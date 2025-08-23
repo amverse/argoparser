@@ -62,6 +62,12 @@ type indexEntry struct {
 	presented bool
 }
 
+func preinit(entry *indexEntry) {
+	if entry.v.Kind() == reflect.Slice {
+		entry.v.Set(reflect.MakeSlice(entry.v.Type(), 0, 0))
+	}
+}
+
 func buildIndex(v any) (fieldsIndex, error) {
 	index := fieldsIndex{
 		fieldsByLongName:  make(map[string]*indexEntry),
@@ -91,6 +97,8 @@ func buildIndex(v any) (fieldsIndex, error) {
 			t: field.Type,
 			m: fm,
 		}
+
+		preinit(entry)
 
 		if fm.longName != "" {
 			if _, ok := index.fieldsByLongName[fm.longName]; ok {

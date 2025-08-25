@@ -26,25 +26,27 @@ func getFieldMeta(field reflect.StructField) (fieldMeta, error) {
 	meta := fieldMeta{}
 
 	argTag, ok := field.Tag.Lookup("arg")
-	if !ok {
-		argTag = ""
+	if ok {
+		argTagParts := strings.Split(argTag, ",")
+
+		for _, part := range argTagParts {
+			tag := strings.TrimSpace(part)
+			if tag == "positional" {
+				meta.isPositional = true
+			} else if tag == "required" {
+				meta.isRequired = true
+			} else if strings.HasPrefix(tag, "--") {
+				meta.longName = tag
+			} else if strings.HasPrefix(tag, "-") {
+				meta.shortName = tag
+			} else {
+				return fieldMeta{}, fmt.Errorf("invalid arg tag: %s", tag)
+			}
+		}
 	}
 
-	argTagParts := strings.Split(argTag, ",")
-
-	for _, part := range argTagParts {
-		tag := strings.TrimSpace(part)
-		if tag == "positional" {
-			meta.isPositional = true
-		} else if tag == "required" {
-			meta.isRequired = true
-		} else if strings.HasPrefix(tag, "--") {
-			meta.longName = tag
-		} else if strings.HasPrefix(tag, "-") {
-			meta.shortName = tag
-		} else {
-			return fieldMeta{}, fmt.Errorf("invalid arg tag: %s", tag)
-		}
+	if meta.longName == "" && meta.shortName == "" {
+		meta.isPositional = true
 	}
 
 	if meta.isPositional && (meta.shortName != "" || meta.longName != "") {
@@ -86,6 +88,10 @@ func buildIndex(v any) (fieldsIndex, error) {
 
 	for i := 0; i < numFields; i++ {
 		field := rt.Field(i)
+		if !field.IsExported() {
+			return index, fmt.Errorf("field %s is not exported", field.Name)
+		}
+
 		fv := rv.FieldByIndex(field.Index)
 		fm, err := getFieldMeta(field)
 		if err != nil {

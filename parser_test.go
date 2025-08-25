@@ -592,6 +592,26 @@ func TestParser(t *testing.T) {
 				Flag1: true, Value1: "val1", Pos1: "pos1",
 			},
 		},
+		{
+			Name:  "Positional without tag",
+			Input: "a b -c d",
+			Result: struct {
+				A string
+				B string
+				C bool   `arg:"-c"`
+				D string `arg:"positional"`
+			}{
+				A: "a", B: "b", C: true, D: "d",
+			},
+		},
+		{
+			Name:  "Unexported field",
+			Input: "",
+			Result: struct {
+				unexportedField bool
+			}{},
+			ShouldReturnError: true,
+		},
 	}
 
 	for _, testCase := range tc {

@@ -65,7 +65,7 @@ required field is not presented: --user-id
 
 First, let's define what we're going to parse.
 
-**Argo**'s input is **single line** of text (or string slice that represents it after joining items by spaces).
+**Argo**'s input is a **single line** of text (or a string slice that represents it after joining items by spaces).
 
 Input represents a set of:
 
@@ -83,7 +83,7 @@ In this example positional arguments "subscriptions" and "get", user-id paramete
 
 ### Arg name format
 
-Flags and parameters may be specified with short or long name. Short format is the name with single hyphen prefix like `-u`. Long format is the name with double-hyphen prefix like `--user-id`.
+Flags and parameters may be specified with short or long name. Short format is a name with single hyphen prefix like `-u`. Long format is the name with double-hyphen prefix like `--user-id`.
 
 All the text after double hyphen up to the space character is considered as argument name, so you can use `--123`, `--@rgu:ment` and even `--"` as valid argument names (but please don't do it, I'm serious).
 
@@ -93,7 +93,7 @@ Every argument may appear more than one time. In this case, value will be an arr
 
 ### A bit about string values
 
-In case you need string value with spaces use quotation marks. You can use double (`"`), single (`'`) and backtick (`` ` ``) quotation marks.
+In case you need a string value with spaces use quotation marks. You can use double (`"`), single (`'`) and backtick (`` ` ``) quotation marks.
 
 Of course, you can escape it with backslash (`\`) as well as backslash itself.
 

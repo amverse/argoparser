@@ -55,15 +55,6 @@ required field is not presented: --user-id
     "simpleproduct"
   ]
 }
-```
-<!-- 
-But a tool made only for fetching subscriptions is way too weird. Let's make something more powerful - interactive cli tool for managing subscriptions including fetching them.
-
-That's how reading commands may look:
-
-```
-
-``` -->
 
 ## Why not standard `flags`?
 

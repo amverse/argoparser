@@ -2,9 +2,7 @@
 
 Argo is another command line arguments parser for Go.
 
-## Quick examples
-
-Let's imagine we're making a tool for fetching user subscriptions.
+## Quick example
 
 Here's a code snippet, illustrating how arguments may be parsed:
 
@@ -55,6 +53,7 @@ required field is not presented: --user-id
     "simpleproduct"
   ]
 }
+```
 
 ## Why not standard `flags`?
 

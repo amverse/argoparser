@@ -615,7 +615,7 @@ func TestParser(t *testing.T) {
 	}
 
 	for _, testCase := range tc {
-		impl(t, testCase)
+		impl(t, testCase, false)
 	}
 }
 
@@ -628,7 +628,8 @@ func TestParseSlice(t *testing.T) {
 			Value1 string `arg:"--value1"`
 		}{}
 
-		err := ParseSlice(input, &result)
+		parser := Parser{SkipUnknown: false}
+		err := parser.ParseSlice(input, &result)
 		if err != nil {
 			t.Fatalf("ParseSlice failed: %s", err)
 		}
@@ -652,7 +653,8 @@ func TestParseSlice(t *testing.T) {
 			Flag bool `arg:"--flag"`
 		}{}
 
-		err := ParseSlice(input, &result)
+		parser := Parser{SkipUnknown: false}
+		err := parser.ParseSlice(input, &result)
 		if err != nil {
 			t.Fatalf("ParseSlice failed: %s", err)
 		}
@@ -674,7 +676,8 @@ func TestParseSlice(t *testing.T) {
 			Flag bool `arg:"--flag"`
 		}{}
 
-		err := ParseSlice(input, &result)
+		parser := Parser{SkipUnknown: false}
+		err := parser.ParseSlice(input, &result)
 		if err != nil {
 			t.Fatalf("ParseSlice failed: %s", err)
 		}
@@ -693,7 +696,8 @@ func TestParseSlice(t *testing.T) {
 
 func TestInputValidation(t *testing.T) {
 	t.Run("Test nil pointer error", func(t *testing.T) {
-		err := ParseString("--flag", nil)
+		parser := Parser{SkipUnknown: false}
+		err := parser.ParseString("--flag", nil)
 		if err == nil {
 			t.Fatal("expected error for nil pointer")
 		}
@@ -703,7 +707,8 @@ func TestInputValidation(t *testing.T) {
 		var result struct {
 			Flag bool `arg:"--flag"`
 		}
-		err := ParseString("--flag", result)
+		parser := Parser{SkipUnknown: false}
+		err := parser.ParseString("--flag", result)
 		if err == nil {
 			t.Fatal("expected error for non-pointer")
 		}
@@ -711,17 +716,19 @@ func TestInputValidation(t *testing.T) {
 
 	t.Run("Test non-struct pointer error", func(t *testing.T) {
 		var result string
-		err := ParseString("--flag", &result)
+		parser := Parser{SkipUnknown: false}
+		err := parser.ParseString("--flag", &result)
 		if err == nil {
 			t.Fatal("expected error for non-struct pointer")
 		}
 	})
 }
 
-func impl(t *testing.T, testCase TestCase) {
+func impl(t *testing.T, testCase TestCase, skipUnknown bool) {
 	t.Run(testCase.Name, func(t *testing.T) {
 		result := reflect.New(reflect.TypeOf(testCase.Result))
-		if err := ParseString(testCase.Input, result.Interface()); err != nil {
+		parser := Parser{SkipUnknown: skipUnknown}
+		if err := parser.ParseString(testCase.Input, result.Interface()); err != nil {
 			if testCase.ShouldReturnError {
 				return
 			}
@@ -731,4 +738,27 @@ func impl(t *testing.T, testCase TestCase) {
 			t.Fatalf("expected %v, got %v (%T, %T)", testCase.Result, result.Elem().Interface(), testCase.Result, result.Elem().Interface())
 		}
 	})
+}
+
+func TestSkipUnknown(t *testing.T) {
+	testcases := []TestCase{
+		{
+			Name:  "Test SkipUnknown: true",
+			Input: "--flag --env en1v --unknown asdf",
+			Result: struct {
+				Flag bool   `arg:"--flag"`
+				Env  string `arg:"--env"`
+			}{
+				Flag: true,
+				Env:  "en1v",
+			},
+			ShouldReturnError: false,
+		},
+	}
+
+	for _, testCase := range testcases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			impl(t, testCase, true)
+		})
+	}
 }

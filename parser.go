@@ -46,7 +46,7 @@ func consumeValue(entry *indexEntry, value string) error {
 	return nil
 }
 
-func checkRequiredFields(index fieldsIndex) error {
+func (p *Parser) checkRequiredFields(index fieldsIndex) error {
 	for _, entry := range index.requiredFields {
 		if !entry.presented {
 			// TODO: change error text
@@ -56,7 +56,7 @@ func checkRequiredFields(index fieldsIndex) error {
 	return nil
 }
 
-func parseImpl(tokens []token, result any) error {
+func (p *Parser) parseImpl(tokens []token, result any) error {
 	index, err := buildIndex(result)
 	if err != nil {
 		return err
@@ -73,6 +73,10 @@ func parseImpl(tokens []token, result any) error {
 		case typeLongKey:
 			entry, ok := index.fieldsByLongName[token.Value]
 			if !ok {
+				if p.SkipUnknown {
+					tokenPos++
+					continue
+				}
 				return fmt.Errorf("unknown long key: %s", token.Value)
 			}
 
@@ -100,6 +104,10 @@ func parseImpl(tokens []token, result any) error {
 				for _, flag := range flags {
 					entry, ok := index.fieldsByShortName["-"+string(flag)]
 					if !ok {
+						if p.SkipUnknown {
+							tokenPos++
+							continue
+						}
 						return fmt.Errorf("unknown short key: %s", string(flag))
 					}
 					if !isFlag(entry) {
@@ -116,6 +124,10 @@ func parseImpl(tokens []token, result any) error {
 			// the code below is copypasted from long-key parsing
 			// TODO: move to common place
 			if !ok {
+				if p.SkipUnknown {
+					tokenPos++
+					continue
+				}
 				return fmt.Errorf("unknown short key: %s", token.Value)
 			}
 
@@ -149,6 +161,10 @@ func parseImpl(tokens []token, result any) error {
 						return err
 					}
 				} else {
+					if p.SkipUnknown {
+						tokenPos++
+						continue
+					}
 					return fmt.Errorf("unexpected positional parameter: %s", token.Value)
 				}
 			}
@@ -157,23 +173,27 @@ func parseImpl(tokens []token, result any) error {
 		tokenPos++
 	}
 
-	if err := checkRequiredFields(index); err != nil {
+	if err := p.checkRequiredFields(index); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func ParseString(input string, result any) error {
+type Parser struct {
+	SkipUnknown bool
+}
+
+func (p *Parser) ParseString(input string, result any) error {
 	tokens := lex(input)
-	return parseImpl(tokens, result)
+	return p.parseImpl(tokens, result)
 }
 
-func ParseSlice(input []string, result any) error {
-	return ParseString(strings.Join(input, " "), result)
+func (p *Parser) ParseSlice(input []string, result any) error {
+	return p.ParseString(strings.Join(input, " "), result)
 }
 
-func ParseAppArgs(result any) error {
+func (p *Parser) ParseAppArgs(result any) error {
 	tokens := []token{}
 	for _, arg := range os.Args[1:] {
 		if strings.HasPrefix(arg, "--") {
@@ -185,14 +205,14 @@ func ParseAppArgs(result any) error {
 		}
 	}
 
-	return parseImpl(tokens, result)
+	return p.parseImpl(tokens, result)
 }
 
-func ParseReader(reader *io.Reader, result any) error {
+func (p *Parser) ParseReader(reader *io.Reader, result any) error {
 	data, err := io.ReadAll(*reader)
 	if err != nil {
 		return err
 	}
 
-	return ParseString(string(data), result)
+	return p.ParseString(string(data), result)
 }

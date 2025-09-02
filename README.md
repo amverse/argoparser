@@ -18,7 +18,8 @@ type SubCtlArgs struct {
 args := SubCtlArgs{
     Env: "testing", // default value for environment
 }
-err := argo.ParseAppArgs(&args)
+parser := argo.Parser{}
+err := parser.ParseAppArgs(&args)
 if err != nil {
     fmt.Println(err)
     return
@@ -174,9 +175,9 @@ Technically:
 - The field can't be positional and hyphen-named at the same time;
 - Marking positional argument as required in fact makes every previous positional argument required too.
 
-### Parsing examples
+### More examples
 
-TBD
+You can find more examples in `parser_test.go`.
 
 ## Contribution
 
